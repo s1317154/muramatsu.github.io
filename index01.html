@@ -1,0 +1,193 @@
+<html>
+  <head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>センサからの信号受信</title>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.1.1/socket.io.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/0.7.2/p5.min.js"></script>
+  </head>
+
+  <body>
+  <h1></h1>
+
+  <div>
+    <div>あなたのID: <span id="myid"></span></div>
+    <div>ルームID: <span id="room"></span></div>
+  </div>
+
+      <h3><button id="speak">説明を聴く</button></h3>
+  <script>
+    const resultDiv = document.querySelector('#result-div');
+    const micDiv = document.querySelector('#mic'); 
+    
+    let room = "s1317154";
+    let socket = io.connect('https://qa.fujimura.com');    
+    let myid;
+    let speedX = 0;
+    let speedY = 0;
+
+    
+    document.querySelector("#room").innerHTML = room;
+    socket.on('mylogin', function(data) {
+      myid = data;
+      socket.emit('join', room); // 受信room IDを指定
+      document.querySelector("#myid").innerHTML = myid;
+//      console.log("あなたのID: ", myid);
+    });
+            
+    socket.on('sensor', function(data) {
+      console.log(data.g);
+        speedX = 0.5*parseInt(data.g);
+        speedY = 0.5*parseInt(data.b);
+    });
+
+ let x = 0;
+ let y = 0;
+ let targetX = 0;
+ let targetY = 0;
+ let target1X = 0;
+ let target1Y = 0;
+ let target2X = 0;
+ let target2Y = 0;
+ let target3X = 0;
+ let target3Y = 0;
+ let target4X = 0;
+ let target4Y = 0;
+
+
+function preload(){
+    tori = loadImage("niwatori.png");
+    obake = loadImage("obake.png");
+    ringo1 = loadImage("ringo1.png");
+    fruits = loadImage("ringo.png");
+    fruits1 = loadImage("lemon.png");
+    fruits2 = loadImage("doku.png");
+    lemon1 = loadImage("lemon2.png");
+    mushi = loadImage("mushi.png");
+    daikon = loadImage("daikon.png");
+    men = loadImage("men.png");
+    men1 = loadImage("men1.png");
+    kumo = loadImage("kumo.png");
+}
+
+function setup() {
+  createCanvas(640,480);
+  background(200);
+  x1 = width/2;
+  y1 = height/2;
+  targetX = random(620);
+  targetY = random(460);
+  target1X = random(620);
+  target1Y = random(460);
+  target2X = random(620);
+  target2Y = random(460);
+  target3X = random(620);
+  target3Y = random(460);
+  target4X = random(620);
+  target4Y = random(460);
+  
+    }
+      
+
+function draw(){
+    background(100,200,255);
+   // background(200);
+     x1 += 2;
+    if (x1 > width) {
+    x1 = 0;
+    y1 += 60;
+  }
+    if (y1 > height) y1 = 0;
+    image(kumo,x1, y1, 80, 80);
+    image(kumo,x1+150, y1+120, 80, 80);
+    image(kumo,x1-90, y1+300, 80, 80);
+
+        x = x + speedX;
+        y = y + speedY;
+      if (x>width) x=width-50;
+      if(x<0) x=0;
+      if(y>height) y=height-50;
+      if(y<0) y=0;
+    
+      image(fruits,targetX,targetY,50,50);
+      let distance = Math.sqrt(Math.pow(x-targetX,2)+Math.pow(y-targetY,2));
+      console.log(distance);
+      if(distance < 60)image(ringo1,targetX-5,targetY-11,70,70);
+    
+      image(fruits1,target1X,target1Y,50,50);
+      let distance1 = Math.sqrt(Math.pow(x-target1X,2)+Math.pow(y-target1Y,2));
+      console.log(distance1);
+      if(distance1 < 60)image(lemon1,target1X-5,target1Y-11,70,70);
+    
+      image(fruits2,target2X,target2Y,50,50);
+      let distance2 = Math.sqrt(Math.pow(x-target2X,2)+Math.pow(y-target2Y,2));
+      console.log(distance2);
+      if(distance2 < 60)image(obake,target2X-15,target2Y-70,80,80);
+    
+      image(men,target3X,target3Y,50,50);
+      let distance3 = Math.sqrt(Math.pow(x-target3X,2)+Math.pow(y-target3Y,2));
+      console.log(distance3);
+      if(distance3 < 60)image(men1,target3X-22,target3Y-20,80,80);
+    
+      image(daikon,target4X,target4Y,60,60);
+      let distance4 = Math.sqrt(Math.pow(x-target4X,2)+Math.pow(y-target4Y,2));
+      console.log(distance4);
+      if(distance4 < 60)image(mushi,target4X+15,target4Y-10,30,30);
+    
+      image(tori,x,y,80,80);
+      
+    
+}
+ 
+  // 発話機能をインスタンス化
+  let msg = new SpeechSynthesisUtterance();
+  let voices = window.speechSynthesis.getVoices();
+
+  function speak(text) {
+    // 以下オプション設定
+    msg.voice = voices[7]; // 7:Google 日本人 ja-JP ※他は英語のみ
+    msg.volume = 1.0; // 音量 min 0 ~ max 1
+    msg.rate = 1.0; // 速度 min 0 ~ max 10
+    msg.pitch = 1.0; // 音程 min 0 ~ max 2
+    msg.text = text; // 喋る内容
+    msg.lang = 'ja-JP'; // en-US or ja-JP
+    // msg.lang = 'en-US'; // en-US or ja-JP
+
+    // 発話実行
+    speechSynthesis.speak(msg);
+  }
+  
+  // 終了時の処理
+  msg.onend = function (event) {
+    console.log("End: ",text);
+  }
+  
+  let text = "にわとりを動かして食べ物を食べてください";
+  let button = document.querySelector("#speak");
+  button.onclick = function () {
+    speak(text);
+  }
+</script>
+<style>
+    div{
+        font-size:10px;
+    }
+#speak{
+  display: inline-block;
+  padding: 0.5em 1em;
+  text-decoration: none;
+  background: #668ad8;
+  color: #FFF;
+  border-radius: 4px;
+  box-shadow: 0px 0px 0px 5px #668ad8;
+  border: dashed 1px #FFF;
+}
+
+#speak:hover {
+  border: dotted 1px #FFF;
+}
+</style>
+</body>
+</html>
